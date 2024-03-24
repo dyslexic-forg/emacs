@@ -9,9 +9,10 @@
 ;; Toggle some ui elements
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
+(display-time-mode 1)
 
-;; Load the Modus Operandi light theme
-(load-theme 'modus-operandi)
+;; Load the Modus Vivendi dark theme
+(load-theme 'modus-vivendi)
 
 ;; Set the font size
 (set-face-attribute 'default nil :height 160)
@@ -44,7 +45,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-babel-load-languages '((emacs-lisp . t) (python . t)))
- '(package-selected-packages '(htmlize org eglot magit company)))
+ '(package-selected-packages '(lua-mode pyvenv htmlize org eglot magit company)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
