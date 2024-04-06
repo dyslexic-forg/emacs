@@ -4,6 +4,27 @@
 (package-initialize)
 
 ;; Packages
+(use-package lua-mode
+  :ensure t)
+
+(use-package ido-vertical-mode
+  :ensure t
+  :config
+  (ido-mode 1)
+  (ido-vertical-mode 1)
+  (setq ido-vertical-define-keys 'C-n-and-C-p-only)
+  (setq ido-enable-flex-matching 1))
+
+(use-package emacs-everywhere
+  :ensure t
+  :bind (:map emacs-everywhere-mode-map
+	      ("C-c C-c" . emacs-everywhere-finish)))
+
+(use-package rust-mode
+  :ensure t
+  :config
+  (add-hook 'rust-mode-hook 'eglot-ensure))
+
 (use-package company
   :ensure t
   :config
@@ -15,6 +36,7 @@
 (use-package org
   :ensure t
   :config
+  (require 'ox-latex)
   (custom-set-default 'org-directory "~/org/")
   (custom-set-default 'org-agenda-files (list org-directory))
   (add-to-list 'org-modules 'org-habit t)
@@ -22,13 +44,19 @@
   (setq org-list-allow-alphabetical t)
   (org-babel-do-load-languages
    'org-babel-load-languages
-   '((python . t))))
+   '((python . t)
+     (scheme . t))))
 
 (use-package org-download
   :ensure t
+  :after org
   :config
   (setq-default org-download-method 'directory)
   (setq-default org-download-image-dir "./images"))
+
+(use-package htmlize
+  :ensure t
+  :after org)
 
 (use-package eglot
   :ensure t)
@@ -40,6 +68,23 @@
   :ensure t   ;Auto-install the package from Melpa
   :pin melpa  ;`package-archives' should already have ("melpa" . "https://melpa.org/packages/")
   :after ox)
+
+(use-package pdf-tools
+  :ensure t)
+
+(use-package auctex
+  :ensure t)
+
+(use-package geiser-racket
+  :ensure t)
+
+(use-package gdscript-mode
+  :ensure t
+  :hook (gdscript-mode . eglot-ensure)
+  :custom (gdscript-eglot-version 4))
+
+;; Show recent files
+(recentf-mode 1)
 
 ;; Don't show the splash screen
 (setq inhibit-startup-message t)
@@ -61,16 +106,41 @@
 ;; Automatically close parentheses
 (electric-pair-mode 1)
 
-;; Enable IDO (Interactively DO things) everywhere to show completions in minibuffer
-(ido-mode 1)
-(setq ido-enable-flex-matching t)
+;; Use IDO in execute-extended-command mode, etc
+(defvar ido-enable-replace-completing-read t
+      "If t, use ido-completing-read instead of completing-read if possible.
+    
+    Set it to nil using let in around-advice for functions where the
+    original completing-read is required.  For example, if a function
+    foo absolutely must use the original completing-read, define some
+    advice like this:
+    
+    (defadvice foo (around original-completing-read-only activate)
+      (let (ido-enable-replace-completing-read) ad-do-it))")
+    
+;; Replace completing-read wherever possible, unless directed otherwise
+(defadvice completing-read
+    (around use-ido-when-possible activate)
+  (if (or (not ido-enable-replace-completing-read) ; Manual override disable ido
+          (and (boundp 'ido-cur-list)
+               ido-cur-list)) ; Avoid infinite loop from ido calling this
+      ad-do-it
+    (let ((allcomp (all-completions "" collection predicate)))
+      (if allcomp
+          (setq ad-return-value
+                (ido-completing-read prompt
+                                     allcomp
+                                     nil require-match initial-input hist def))
+        ad-do-it))))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(package-selected-packages '(org-download ox-hugo pyvenv magit company)))
+ '(org-export-backends '(ascii beamer html icalendar latex odt))
+ '(package-selected-packages
+   '(lua-mode ido-vertical-mode vertico rust-mode gdscript-mode geiser-racket htmlize auctex auc-tex pdf-tools org-download ox-hugo pyvenv magit company)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
