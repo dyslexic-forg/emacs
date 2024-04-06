@@ -7,13 +7,13 @@
 (use-package lua-mode
   :ensure t)
 
-(use-package ido-vertical-mode
+(use-package helm
   :ensure t
   :config
-  (ido-mode 1)
-  (ido-vertical-mode 1)
-  (setq ido-vertical-define-keys 'C-n-and-C-p-only)
-  (setq ido-enable-flex-matching 1))
+  (global-set-key (kbd "M-x") #'helm-M-x)
+  (global-set-key (kbd "C-x r b") #'helm-filtered-bookmarks)
+  (global-set-key (kbd "C-x C-f") #'helm-find-files)
+  (helm-mode 1))
 
 (use-package emacs-everywhere
   :ensure t
@@ -45,7 +45,8 @@
   (org-babel-do-load-languages
    'org-babel-load-languages
    '((python . t)
-     (scheme . t))))
+     (scheme . t)
+     (C . t))))
 
 (use-package org-download
   :ensure t
@@ -103,35 +104,9 @@
 ;; Change (yes or no) prompt to (y or n)
 (setq use-short-answers t)
 
+
 ;; Automatically close parentheses
 (electric-pair-mode 1)
-
-;; Use IDO in execute-extended-command mode, etc
-(defvar ido-enable-replace-completing-read t
-      "If t, use ido-completing-read instead of completing-read if possible.
-    
-    Set it to nil using let in around-advice for functions where the
-    original completing-read is required.  For example, if a function
-    foo absolutely must use the original completing-read, define some
-    advice like this:
-    
-    (defadvice foo (around original-completing-read-only activate)
-      (let (ido-enable-replace-completing-read) ad-do-it))")
-    
-;; Replace completing-read wherever possible, unless directed otherwise
-(defadvice completing-read
-    (around use-ido-when-possible activate)
-  (if (or (not ido-enable-replace-completing-read) ; Manual override disable ido
-          (and (boundp 'ido-cur-list)
-               ido-cur-list)) ; Avoid infinite loop from ido calling this
-      ad-do-it
-    (let ((allcomp (all-completions "" collection predicate)))
-      (if allcomp
-          (setq ad-return-value
-                (ido-completing-read prompt
-                                     allcomp
-                                     nil require-match initial-input hist def))
-        ad-do-it))))
 
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
@@ -140,7 +115,7 @@
  ;; If there is more than one, they won't work right.
  '(org-export-backends '(ascii beamer html icalendar latex odt))
  '(package-selected-packages
-   '(lua-mode ido-vertical-mode vertico rust-mode gdscript-mode geiser-racket htmlize auctex auc-tex pdf-tools org-download ox-hugo pyvenv magit company)))
+   '(helm lua-mode ido-vertical-mode vertico rust-mode gdscript-mode geiser-racket htmlize auctex auc-tex pdf-tools org-download ox-hugo pyvenv magit company)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
